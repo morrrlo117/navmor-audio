@@ -668,6 +668,40 @@
             }
         );
 
+        function sendResourcesHeight() {
+
+            const height =
+                document.documentElement.scrollHeight;
+
+            window.parent.postMessage(
+                {
+                    type: "navmor-resources-height",
+                    height: height
+                },
+                "*"
+            );
+
+        }
+
+
+        const resourcesResizeObserver =
+            new ResizeObserver(() => {
+
+                sendResourcesHeight();
+
+            });
+
+
+        resourcesResizeObserver.observe(
+            document.body
+        );
+
+
+        window.addEventListener(
+            "load",
+            sendResourcesHeight
+        );
+
     </script>
 
 </body>
