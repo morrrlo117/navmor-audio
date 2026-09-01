@@ -2355,6 +2355,40 @@
 
         updateTerminalCaret();
 
+        function sendPageHeight() {
+
+            const height =
+                document.documentElement.scrollHeight;
+
+            window.parent.postMessage(
+                {
+                    type: "navmor-audio-height",
+                    height: height
+                },
+                "*"
+            );
+
+        }
+
+
+        const pageResizeObserver =
+            new ResizeObserver(() => {
+
+                sendPageHeight();
+
+            });
+
+
+        pageResizeObserver.observe(
+            document.body
+        );
+
+
+        window.addEventListener(
+            "load",
+            sendPageHeight
+        );
+
     </script>
 
 </body>
