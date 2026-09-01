@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>НавьМор — Ресурсы</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #070503;
+            --bg-panel: rgba(11, 7, 4, 0.92);
+
+            --line-dim: rgba(255, 165, 70, 0.17);
+            --line-main: rgba(255, 174, 82, 0.42);
+            --line-bright: rgba(255, 198, 125, 0.82);
+
+            --text-main: #d69b50;
+            --text-bright: #f0b56b;
+            --text-soft: #b87c3d;
+            --text-dim: #80572f;
+            --text-faint: #594026;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+
+            background: transparent;
+
+            color: var(--text-main);
+
+            font-family:
+                "Courier New",
+                Courier,
+                monospace;
+        }
+
+        body {
+            padding: 0;
+        }
+
+        .resources {
+            width: 100%;
+
+            border: 1px solid var(--line-main);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(12, 7, 4, 0.96),
+                    rgba(6, 4, 2, 0.98));
+
+            box-shadow:
+                inset 0 0 18px rgba(255, 160, 70, 0.025),
+                0 0 18px rgba(0, 0, 0, 0.28);
+        }
+
+        .resources-header {
+            padding: 16px 18px;
+
+            border-bottom: 1px solid var(--line-dim);
+
+            color: var(--text-bright);
+
+            font-size: 13px;
+            font-weight: bold;
+
+            letter-spacing: 0.16em;
+
+            text-transform: uppercase;
+        }
+
+        .track-section {
+            border-bottom: 1px solid var(--line-dim);
+        }
+
+        .track-section:last-child {
+            border-bottom: none;
+        }
+
+        .track-toggle {
+            position: relative;
+
+            width: 100%;
+
+            padding: 15px 18px;
+
+            border: none;
+            outline: none;
+
+            background:
+                linear-gradient(180deg,
+                    rgba(24, 14, 7, 0.48),
+                    rgba(10, 6, 3, 0.54));
+
+            color: var(--text-main);
+
+            font-family: inherit;
+
+            font-size: 13px;
+            font-weight: bold;
+
+            letter-spacing: 0.11em;
+
+            text-align: left;
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition:
+                background 0.18s ease,
+                color 0.18s ease;
+        }
+
+        .track-toggle:hover {
+            background:
+                linear-gradient(180deg,
+                    rgba(49, 28, 12, 0.66),
+                    rgba(18, 10, 5, 0.64));
+
+            color: var(--text-bright);
+        }
+
+        .track-toggle::after {
+            content: "+";
+
+            position: absolute;
+
+            right: 18px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: var(--text-soft);
+
+            font-size: 17px;
+            font-weight: normal;
+        }
+
+        .track-section.open .track-toggle::after {
+            content: "−";
+        }
+
+        .track-section.open .track-toggle {
+            color: var(--text-bright);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(38, 21, 9, 0.68),
+                    rgba(15, 8, 4, 0.68));
+        }
+
+        .track-credits {
+            display: none;
+
+            padding: 6px 18px 18px 18px;
+
+            background:
+                rgba(6, 4, 2, 0.72);
+        }
+
+        .track-section.open .track-credits {
+            display: block;
+        }
+
+        .track-info {
+            margin: 12px 0 16px 0;
+
+            color: var(--text-dim);
+
+            font-size: 11px;
+            line-height: 1.6;
+
+            letter-spacing: 0.07em;
+
+            text-transform: uppercase;
+        }
+
+        .credit-item {
+            padding: 10px 0;
+
+            border-top: 1px solid rgba(255, 165, 70, 0.09);
+
+            color: var(--text-soft);
+
+            font-size: 12px;
+            line-height: 1.65;
+        }
+
+        .credit-item:first-of-type {
+            border-top: none;
+        }
+
+        .credit-index {
+            display: inline-block;
+
+            width: 34px;
+
+            color: var(--text-faint);
+        }
+
+        .credit-item a {
+            color: var(--text-bright);
+
+            text-decoration: none;
+
+            border-bottom:
+                1px solid rgba(240, 181, 107, 0.22);
+
+            transition:
+                color 0.18s ease,
+                border-color 0.18s ease;
+        }
+
+        .credit-item a:hover {
+            color: #ffd49b;
+
+            border-bottom-color:
+                rgba(255, 212, 155, 0.65);
+        }
+
+        @media (max-width: 600px) {
+
+            .resources-header {
+                padding-left: 14px;
+                padding-right: 14px;
+
+                font-size: 12px;
+            }
+
+            .track-toggle {
+                padding-left: 14px;
+                padding-right: 44px;
+
+                font-size: 12px;
+            }
+
+            .track-credits {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .credit-item {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <section class="resources" id="resources">
+
+        <div class="resources-header">
+            РЕСУРСЫ // АТРИБУЦИЯ_АУДИОМАТЕРИАЛОВ
+        </div>
+
+
+        <!-- ======================================================
+             ТРЕК 01
+             ====================================================== -->
+
+        <div class="track-section">
+
+            <button class="track-toggle" type="button">
+                NODE-06 // НОДА 06
+            </button>
+
+            <div class="track-credits">
+
+                <div class="track-info">
+                    ИСХОДНЫЕ АУДИОМАТЕРИАЛЫ // FREESOUND.ORG
+                </div>
+
+
+                <!-- АТРИБУЦИЯ 01 -->
+                <div class="credit-item">
+                    <span class="credit-index">01 //</span>
+
+                    <a href="https://freesound.org/people/waveplaySFX/sounds/197466/" target="_blank"
+                        rel="noopener noreferrer">
+                        [SFX Hit] drop/bomb effect 8
+                    </a>
+                    by
+                    <a href="https://freesound.org/people/waveplaySFX/" target="_blank" rel="noopener noreferrer">
+                        waveplaySFX
+                    </a>
+                    |
+                    License:
+                    <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank"
+                        rel="noopener noreferrer">
+                        Creative Commons 0
+                    </a>
+                </div>
+
+
+                <!-- АТРИБУЦИЯ 02 -->
+                <div class="credit-item">
+                    <span class="credit-index">02 //</span>
+
+                    <a href="https://freesound.org/people/deleted_user_2428730/sounds/455025/">techno rumble beat 127
+                        bpm.wav</a> by <a
+                        href="https://freesound.org/people/deleted_user_2428730/">deleted_user_2428730</a> | License: <a
+                        href="https://creativecommons.org/licenses/by-nc/4.0/">Attribution NonCommercial 4.0</a>
+
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">03 //</span>
+
+                    <a href="https://freesound.org/people/berdnikov2004/sounds/586442/">Fake dial-up modem sound (Tape
+                        recorded)</a> by <a href="https://freesound.org/people/berdnikov2004/">berdnikov2004</a> |
+                    License: <a href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+
+                <div class="credit-item">
+                    <span class="credit-index">04 //</span>
+
+                    <a
+                        href="https://freesound.org/people/deleted_user_1941307/sounds/164116/">terminating-session.wav</a>
+                    by <a href="https://freesound.org/people/deleted_user_1941307/">deleted_user_1941307</a> | License:
+                    <a href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">05 //</span>
+
+                    <a href="https://freesound.org/people/tusic99/sounds/648911/">female computer ai voice "every end is
+                        a new beginning" with dramatic effects</a> by <a
+                        href="https://freesound.org/people/tusic99/">tusic99</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">06 //</span>
+
+                    <a href="https://freesound.org/people/Cyclez/sounds/518488/">DARK TECHNO KICK DRUM LOOP</a> by <a
+                        href="https://freesound.org/people/Cyclez/">Cyclez</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+                <div class="credit-item">
+                    <span class="credit-index">07 //</span>
+
+                    <a href="https://freesound.org/people/AcousticMemory/sounds/331547/">01 -
+                        BassHitFiltered_039_24b48k_AM.wav</a> by <a
+                        href="https://freesound.org/people/AcousticMemory/">AcousticMemory</a> | License: <a
+                        href="http://creativecommons.org/licenses/by/3.0/">Attribution 3.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">08 //</span>
+
+                    <a href="https://freesound.org/people/dimapain/sounds/867558/">sci-fi weapon shot laser gun blaster
+                        futuristic realistic synthesized shooter game-audio combat asset</a> by <a
+                        href="https://freesound.org/people/dimapain/">dimapain</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">09 //</span>
+
+                    <a href="https://freesound.org/people/yenss/sounds/423442/">Crazy Resonant Bass Shot (By yenss)</a>
+                    by <a href="https://freesound.org/people/yenss/">yenss</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">10 //</span>
+
+                    <a href="https://freesound.org/people/.Andre_Onate/sounds/687219/">1 Bar tribal fill.wav</a> by <a
+                        href="https://freesound.org/people/.Andre_Onate/">.Andre_Onate</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">11 //</span>
+
+                    <a href="https://freesound.org/people/modularsamples/sounds/293229/">Korg Mono-Poly - Details Bass -
+                        C5 (Details Bass-72-127.aif)</a> by <a
+                        href="https://freesound.org/people/modularsamples/">modularsamples</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">12 //</span>
+
+                    <a href="https://freesound.org/people/AUDACITIER/sounds/632023/">Bass Simple Tune #6</a> by <a
+                        href="https://freesound.org/people/AUDACITIER/">AUDACITIER</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">13 //</span>
+
+                    <a href="https://freesound.org/people/josefpres/sounds/617721/">Bass figure 001 V1 14 AIS 120
+                        bpm.wav</a> by <a href="https://freesound.org/people/josefpres/">josefpres</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">14 //</span>
+
+                    <a href="https://freesound.org/people/voxlab/sounds/708792/">DnB KickSubBass</a> by <a
+                        href="https://freesound.org/people/voxlab/">voxlab</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">15 //</span>
+
+                    <a href="https://freesound.org/people/patchen/sounds/3525/">KRG TAPE BASS F3.wav</a> by <a
+                        href="https://freesound.org/people/patchen/">patchen</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">16 //</span>
+
+                    <a href="https://freesound.org/people/basarunder/sounds/515317/">Countdown 1.wav</a> by <a
+                        href="https://freesound.org/people/basarunder/">basarunder</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">17 //</span>
+
+                    <a href="https://freesound.org/people/electriger/sounds/658246/">glitch1_Hard4.wav</a> by <a
+                        href="https://freesound.org/people/electriger/">electriger</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">18 //</span>
+
+                    <a href="https://freesound.org/people/Schulman/sounds/167670/">CASIO SA-5 Glitch 5.wav</a> by <a
+                        href="https://freesound.org/people/Schulman/">Schulman</a> | License: <a
+                        href="http://creativecommons.org/licenses/by/3.0/">Attribution 3.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">19 //</span>
+
+                    <a href="https://freesound.org/people/AlienXXX/sounds/196195/">Glitch_024_bleep.wav</a> by <a
+                        href="https://freesound.org/people/AlienXXX/">AlienXXX</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">20 //</span>
+
+                    <a href="https://freesound.org/people/tictac9/sounds/518030/">Experimental Sax (short Version) |
+                        tictac9</a> by <a href="https://freesound.org/people/tictac9/">tictac9</a> | License: <a
+                        href="http://creativecommons.org/licenses/by-nc/3.0/">Attribution NonCommercial 3.0</a>
+                </div>
+
+
+
+                <div class="credit-item">
+                    <span class="credit-index">21 //</span>
+
+                    <a href="https://freesound.org/people/freekit/sounds/867097/">Fridge 1</a> by <a
+                        href="https://freesound.org/people/freekit/">freekit</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+                <div class="credit-item">
+                    <span class="credit-index">22 //</span>
+
+                    <a href="https://freesound.org/people/qubodup/sounds/860590/">Cinematic Tension Loop Of Epic
+                        Proportions (FrogsInSpace Piano Stab Samples)</a> by <a
+                        href="https://freesound.org/people/qubodup/">qubodup</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a><br>
+                    <a href="https://freesound.org/people/FrogsInSpace/sounds/860547/">Piano Stab 2</a> by <a
+                        href="https://freesound.org/people/FrogsInSpace/">FrogsInSpace</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a><br>
+                    <a href="https://freesound.org/people/FrogsInSpace/sounds/860546/">Piano Stab 1</a> by <a
+                        href="https://freesound.org/people/FrogsInSpace/">FrogsInSpace</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+                <div class="credit-item">
+                    <span class="credit-index">23 //</span>
+
+                    <a href="https://freesound.org/people/Victek/sounds/541748/">Impact with Sweep</a> by <a
+                        href="https://freesound.org/people/Victek/">Victek</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+                <div class="credit-item">
+                    <span class="credit-index">24 //</span>
+
+                    <a href="https://freesound.org/people/courtneyeck/sounds/672382/">Dark Beats</a> by <a
+                        href="https://freesound.org/people/courtneyeck/">courtneyeck</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+
+                <div class="credit-item">
+                    <span class="credit-index">25 //</span>
+
+                    <a href="https://freesound.org/people/neilraouf/sounds/617518/">Tension Ambience</a> by <a
+                        href="https://freesound.org/people/neilraouf/">neilraouf</a> | License: <a
+                        href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a>
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">26 //</span>
+
+                    <a href="https://freesound.org/people/Sonoticai/sounds/529917/">Female_"Target Acquired/
+                        Authorization confirmed/Error Code".wav</a> by <a
+                        href="https://freesound.org/people/Sonoticai/">Sonoticai</a> | License: <a
+                        href="https://creativecommons.org/licenses/by/4.0/">Attribution 4.0</a>
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================================
+             ПРИМЕР ВТОРОГО ТРЕКА
+             Пока можно оставить закомментированным.
+             ====================================================== -->
+
+        <!--
+
+        <div class="track-section">
+
+            <button class="track-toggle" type="button">
+                NODE-12 // НАЗВАНИЕ ТРЕКА
+            </button>
+
+            <div class="track-credits">
+
+                <div class="track-info">
+                    ИСХОДНЫЕ АУДИОМАТЕРИАЛЫ // FREESOUND.ORG
+                </div>
+
+                <div class="credit-item">
+                    <span class="credit-index">01 //</span>
+
+                    СЮДА АТРИБУЦИЯ
+                </div>
+
+            </div>
+
+        </div>
+
+        -->
+
+    </section>
+
+
+    <script>
+
+        const trackSections =
+            document.querySelectorAll(
+                ".track-section"
+            );
+
+        const resources =
+            document.getElementById(
+                "resources"
+            );
+
+
+        function closeAllTracks(
+            exceptSection = null
+        ) {
+
+            trackSections.forEach(
+                (section) => {
+
+                    if (
+                        section !==
+                        exceptSection
+                    ) {
+
+                        section.classList.remove(
+                            "open"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        trackSections.forEach(
+            (section) => {
+
+                const toggle =
+                    section.querySelector(
+                        ".track-toggle"
+                    );
+
+
+                toggle.addEventListener(
+                    "click",
+                    (event) => {
+
+                        event.stopPropagation();
+
+                        const isOpen =
+                            section.classList.contains(
+                                "open"
+                            );
+
+
+                        closeAllTracks(
+                            section
+                        );
+
+
+                        if (isOpen) {
+
+                            section.classList.remove(
+                                "open"
+                            );
+
+                        } else {
+
+                            section.classList.add(
+                                "open"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        resources.addEventListener(
+            "click",
+            (event) => {
+
+                event.stopPropagation();
+
+            }
+        );
+
+
+        document.addEventListener(
+            "click",
+            () => {
+
+                closeAllTracks();
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
