@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>НавьМор — Аудиоархив</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+
+        /* =========================================================
+   NAVMOR AUDIO CONSOLE
+   БАЗОВАЯ ПАЛИТРА
+   ========================================================= */
+
+        :root {
+            --bg-dark: #070503;
+            --bg-deep: #0a0603;
+
+            --bg-panel: rgba(11, 7, 4, 0.82);
+            --bg-panel-soft: rgba(18, 11, 6, 0.42);
+
+            --line-faint: rgba(255, 165, 70, 0.08);
+            --line-dim: rgba(255, 165, 70, 0.17);
+            --line-main: rgba(255, 174, 82, 0.42);
+            --line-bright: rgba(255, 198, 125, 0.82);
+
+            --text-main: #d69b50;
+            --text-bright: #f0b56b;
+            --text-soft: #b87c3d;
+            --text-dim: #80572f;
+            --text-faint: #594026;
+
+            --error: #d66b43;
+
+            --glow-soft:
+                0 0 8px rgba(255, 160, 65, 0.10);
+
+            --glow-main:
+                0 0 14px rgba(255, 160, 65, 0.16);
+
+            --glow-bright:
+                0 0 18px rgba(255, 185, 95, 0.24);
+        }
+
+
+        /* =========================================================
+   СТРАНИЦА
+   ========================================================= */
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+
+            background:
+                radial-gradient(circle at 72% 28%,
+                    rgba(255, 145, 50, 0.09),
+                    transparent 28%),
+                radial-gradient(circle at 16% 82%,
+                    rgba(130, 65, 22, 0.11),
+                    transparent 34%),
+                linear-gradient(180deg,
+                    #130d08 0%,
+                    #090603 48%,
+                    #050403 100%);
+
+            color: var(--text-main);
+
+            font-family:
+                "Courier New",
+                Courier,
+                monospace;
+        }
+
+
+        body {
+            min-height: 100vh;
+
+            padding: 32px 18px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        /* =========================================================
+   ГЛАВНЫЙ КОРПУС КОНСОЛИ
+   ========================================================= */
+
+        .terminal {
+            width: min(1100px, 100%);
+
+            position: relative;
+
+            border: 1px solid var(--line-main);
+
+            background:
+                linear-gradient(rgba(8, 5, 3, 0.93),
+                    rgba(4, 3, 2, 0.97)),
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 180, 90, 0.025) 3px);
+
+            box-shadow:
+                0 0 0 1px rgba(255, 170, 80, 0.08),
+                0 0 26px rgba(255, 145, 50, 0.08),
+                0 30px 90px rgba(0, 0, 0, 0.74);
+
+            overflow: hidden;
+        }
+
+
+        /* затемнение краёв */
+        .terminal::before {
+            content: "";
+
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                linear-gradient(90deg,
+                    rgba(0, 0, 0, 0.38),
+                    transparent 7%,
+                    transparent 93%,
+                    rgba(0, 0, 0, 0.38));
+
+            z-index: 10;
+        }
+
+
+        /* слабая сетка/скан поверхности */
+        .terminal::after {
+            content: "";
+
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(255, 185, 90, 0.012) 4px);
+
+            opacity: 0.72;
+
+            z-index: 11;
+        }
+
+
+        /* =========================================================
+   ШАПКА
+   ========================================================= */
+
+        .header {
+            position: relative;
+            z-index: 20;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+
+            padding: 18px 24px;
+
+            border-bottom: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(255, 165, 70, 0.045),
+                    rgba(255, 165, 70, 0.012));
+        }
+
+
+        .header-title {
+            color: var(--text-main);
+
+            font-size: 14px;
+            font-weight: bold;
+
+            letter-spacing: 0.14em;
+
+            text-transform: uppercase;
+
+            text-shadow: var(--glow-soft);
+        }
+
+
+        .status {
+            color: var(--text-soft);
+
+            font-size: 12px;
+
+            letter-spacing: 0.12em;
+
+            text-transform: uppercase;
+
+            text-shadow: var(--glow-soft);
+        }
+
+
+        /* маленький индикатор состояния */
+        .status::first-letter {
+            color: var(--text-bright);
+        }
+
+
+        /* =========================================================
+   ОСНОВНАЯ СЕТКА
+   ========================================================= */
+
+        .main {
+            position: relative;
+            z-index: 20;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1.45fr) minmax(280px, 0.8fr);
+
+            min-height: 500px;
+        }
+
+
+        /* =========================================================
+   ЛЕВАЯ КОНСОЛЬ
+   ========================================================= */
+
+        .console-panel {
+            position: relative;
+
+            padding: 30px;
+
+            border-right: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(18, 10, 5, 0.34),
+                    rgba(7, 4, 2, 0.14));
+        }
+
+
+        /* =========================================================
+   ПРАВАЯ ПАНЕЛЬ
+   ========================================================= */
+
+        .archive-panel {
+            position: relative;
+
+            padding: 30px;
+
+            background:
+                linear-gradient(180deg,
+                    rgba(18, 10, 5, 0.20),
+                    rgba(7, 4, 2, 0.08));
+        }
+
+
+        /* =========================================================
+   ПОДПИСИ РАЗДЕЛОВ
+   ========================================================= */
+
+        .section-label {
+            margin-bottom: 20px;
+
+            color: var(--text-faint);
+
+            font-size: 11px;
+
+            letter-spacing: 0.18em;
+
+            text-transform: uppercase;
+        }
+
+
+        /* маленькая линия после подписи */
+        .section-label::after {
+            content: "";
+
+            display: block;
+
+            width: 64px;
+            height: 1px;
+
+            margin-top: 8px;
+
+            background:
+                linear-gradient(90deg,
+                    var(--line-main),
+                    transparent);
+        }
+
+
+        /* =========================================================
+   ЛОГ КОНСОЛИ
+   ========================================================= */
+
+        .console-log {
+            height: 250px;
+
+            overflow-y: auto;
+
+            padding: 16px 14px;
+            padding-right: 10px;
+
+            border: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(rgba(12, 7, 4, 0.44),
+                    rgba(7, 4, 2, 0.62)),
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 18px,
+                    rgba(255, 160, 70, 0.035) 19px);
+
+            box-shadow:
+                inset 0 0 20px rgba(0, 0, 0, 0.38);
+
+            line-height: 1.72;
+
+            font-size: 14px;
+        }
+
+
+        /* scrollbar */
+        .console-log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+
+        .console-log::-webkit-scrollbar-track {
+            background: #100b07;
+        }
+
+
+        .console-log::-webkit-scrollbar-thumb {
+            background: rgba(206, 135, 67, 0.36);
+        }
+
+
+        .console-log::-webkit-scrollbar-thumb:hover {
+            background: rgba(234, 158, 81, 0.52);
+        }
+
+
+        .console-line {
+            margin-bottom: 4px;
+
+            color: var(--text-main);
+
+            text-shadow:
+                0 0 7px rgba(255, 166, 70, 0.06);
+        }
+
+
+        .console-line.success {
+            color: var(--text-bright);
+
+            text-shadow:
+                0 0 9px rgba(255, 177, 85, 0.12);
+        }
+
+
+        .console-line.error {
+            color: var(--error);
+
+            text-shadow:
+                0 0 9px rgba(214, 107, 67, 0.12);
+        }
+
+
+        /* =========================================================
+   ВВОД КОМАНДЫ
+   ========================================================= */
+
+        .input-row {
+            position: relative;
+
+            display: flex;
+
+            gap: 10px;
+
+            align-items: center;
+
+            margin-top: 18px;
+
+            padding: 14px 16px;
+
+            border: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(20, 12, 6, 0.40),
+                    rgba(9, 5, 3, 0.48));
+
+            box-shadow:
+                inset 0 0 12px rgba(255, 165, 70, 0.025);
+        }
+
+
+        /* левая угловая отметка */
+        .input-row::before {
+            content: "";
+
+            position: absolute;
+
+            left: -1px;
+            top: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-top: 2px solid var(--line-bright);
+            border-left: 2px solid var(--line-bright);
+
+            opacity: 0.7;
+        }
+
+
+        /* правая нижняя отметка */
+        .input-row::after {
+            content: "";
+
+            position: absolute;
+
+            right: -1px;
+            bottom: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-right: 2px solid var(--line-bright);
+            border-bottom: 2px solid var(--line-bright);
+
+            opacity: 0.7;
+        }
+
+
+        .prompt {
+            color: var(--text-bright);
+
+            font-size: 18px;
+
+            text-shadow: var(--glow-main);
+        }
+
+
+        #commandInput {
+            flex: 1;
+
+            min-width: 0;
+
+            border: none;
+            outline: none;
+
+            background: transparent;
+
+            color: var(--text-main);
+
+            font-family: inherit;
+
+            font-size: 15px;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+            caret-color: #ffb260;
+        }
+
+
+        #commandInput::placeholder {
+            color: var(--text-faint);
+        }
+
+
+        /* =========================================================
+   ЭЛЕМЕНТЫ АРХИВА
+   ========================================================= */
+
+        .archive-item {
+            position: relative;
+
+            padding: 16px;
+
+            margin-bottom: 12px;
+
+            border: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(18, 11, 6, 0.44),
+                    rgba(10, 6, 3, 0.40));
+
+            box-shadow:
+                inset 0 0 8px rgba(255, 170, 80, 0.035);
+
+            transition:
+                border-color 0.2s ease,
+                background 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .archive-item.active {
+            border-color: var(--line-main);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(31, 18, 8, 0.52),
+                    rgba(13, 7, 3, 0.46));
+
+            box-shadow:
+                inset 0 0 14px rgba(255, 170, 80, 0.05),
+                0 0 14px rgba(255, 150, 60, 0.05);
+        }
+
+
+        /* углы активной записи */
+        .archive-item.active::before {
+            content: "";
+
+            position: absolute;
+
+            left: -1px;
+            top: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-left: 2px solid var(--line-bright);
+            border-top: 2px solid var(--line-bright);
+
+            opacity: 0.8;
+        }
+
+
+        .archive-item.active::after {
+            content: "";
+
+            position: absolute;
+
+            right: -1px;
+            bottom: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-right: 2px solid var(--line-bright);
+            border-bottom: 2px solid var(--line-bright);
+
+            opacity: 0.8;
+        }
+
+
+        .track-code {
+            color: var(--text-main);
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            letter-spacing: 0.14em;
+
+            text-transform: uppercase;
+
+            text-shadow: var(--glow-soft);
+        }
+
+
+        .track-name {
+            margin-top: 8px;
+
+            color: var(--text-bright);
+
+            font-size: 15px;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+        }
+
+
+        .track-meta {
+            margin-top: 10px;
+
+            color: var(--text-dim);
+
+            font-size: 11px;
+
+            line-height: 1.62;
+
+            letter-spacing: 0.055em;
+        }
+
+
+        .locked {
+            opacity: 0.28;
+
+            filter: saturate(0.7);
+        }
+
+
+        /* =========================================================
+   ПЛЕЕР
+   ========================================================= */
+
+        .player {
+            display: none;
+
+            position: relative;
+
+            margin-top: 24px;
+
+            padding: 20px 18px;
+
+            border: 1px solid var(--line-main);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(22, 13, 6, 0.52),
+                    rgba(8, 5, 2, 0.72));
+
+            box-shadow:
+                inset 0 0 14px rgba(255, 170, 80, 0.04),
+                0 0 14px rgba(255, 145, 50, 0.04);
+        }
+
+
+        .player.visible {
+            display: block;
+        }
+
+
+        /* декоративные углы плеера */
+        .player::before {
+            content: "";
+
+            position: absolute;
+
+            left: -1px;
+            top: -1px;
+
+            width: 18px;
+            height: 18px;
+
+            border-top: 2px solid var(--line-bright);
+            border-left: 2px solid var(--line-bright);
+
+            opacity: 0.8;
+        }
+
+
+        .player::after {
+            content: "";
+
+            position: absolute;
+
+            right: -1px;
+            bottom: -1px;
+
+            width: 18px;
+            height: 18px;
+
+            border-right: 2px solid var(--line-bright);
+            border-bottom: 2px solid var(--line-bright);
+
+            opacity: 0.8;
+        }
+
+
+        .signal-title {
+            margin-bottom: 8px;
+
+            color: var(--text-bright);
+
+            font-size: 15px;
+
+            font-weight: bold;
+
+            letter-spacing: 0.12em;
+
+            text-transform: uppercase;
+
+            text-shadow: var(--glow-soft);
+        }
+
+
+        .signal-status {
+            margin-bottom: 16px;
+
+            color: var(--text-dim);
+
+            font-size: 11px;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+        }
+
+
+        .visualizer-block {
+            margin-bottom: 16px;
+        }
+
+        .visualizer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+
+            margin-bottom: 8px;
+
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+        }
+
+        .visualizer-screen {
+            position: relative;
+
+            height: 140px;
+
+            border: 1px solid var(--line-dim);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(11, 7, 4, 0.82),
+                    rgba(5, 3, 2, 0.94)),
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 22px,
+                    rgba(255, 160, 70, 0.045) 23px),
+                repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 56px,
+                    rgba(255, 160, 70, 0.04) 57px);
+
+            box-shadow:
+                inset 0 0 18px rgba(0, 0, 0, 0.44),
+                inset 0 0 1px rgba(255, 180, 90, 0.10);
+
+            overflow: hidden;
+        }
+
+        .visualizer-screen::before {
+            content: "";
+
+            position: absolute;
+            left: -1px;
+            top: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-top: 2px solid var(--line-bright);
+            border-left: 2px solid var(--line-bright);
+
+            opacity: 0.75;
+
+            pointer-events: none;
+        }
+
+        .visualizer-screen::after {
+            content: "";
+
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+
+            width: 16px;
+            height: 16px;
+
+            border-right: 2px solid var(--line-bright);
+            border-bottom: 2px solid var(--line-bright);
+
+            opacity: 0.75;
+
+            pointer-events: none;
+        }
+
+        #oscilloscope {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .visualizer-value {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+
+            padding: 4px 7px;
+
+            border: 1px solid rgba(255, 174, 82, 0.20);
+            background: rgba(8, 5, 3, 0.70);
+
+            color: var(--text-bright);
+            font-size: 11px;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+
+            text-shadow: var(--glow-soft);
+        }
+
+        /* =========================================================
+   ПРОГРЕСС
+   ========================================================= */
+
+        .progress-shell {
+            width: 100%;
+            height: 11px;
+
+            border: 1px solid var(--line-dim);
+
+            background: rgba(14, 8, 4, 0.92);
+
+            overflow: hidden;
+
+            box-shadow:
+                inset 0 0 6px rgba(0, 0, 0, 0.55);
+        }
+
+
+        .progress-bar {
+            height: 100%;
+
+            width: 0%;
+
+            background:
+                linear-gradient(90deg,
+                    #87451c 0%,
+                    #c97535 45%,
+                    #eda75c 100%);
+
+            box-shadow:
+                0 0 12px rgba(255, 180, 90, 0.18);
+
+            transition: width 0.18s linear;
+        }
+
+
+        .player-time {
+            margin-top: 9px;
+
+            color: var(--text-dim);
+
+            font-size: 11px;
+
+            letter-spacing: 0.10em;
+        }
+
+
+        /* =========================================================
+   КНОПКИ
+   ========================================================= */
+
+        .player-controls {
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+
+            margin-top: 16px;
+        }
+
+
+        button {
+            position: relative;
+
+            min-width: 190px;
+
+            padding: 13px 18px;
+
+            border: 1px solid var(--line-main);
+
+            outline: none;
+
+            background:
+                linear-gradient(180deg,
+                    rgba(74, 42, 16, 0.52),
+                    rgba(28, 16, 7, 0.75));
+
+            color: var(--text-bright);
+
+            font-family: inherit;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            letter-spacing: 0.11em;
+
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            box-shadow:
+                inset 0 0 10px rgba(255, 186, 96, 0.055),
+                0 0 12px rgba(255, 145, 50, 0.05);
+
+            transition:
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                color 0.18s ease,
+                transform 0.10s ease;
+        }
+
+
+        /* левый верхний угол кнопки */
+        button::before {
+            content: "";
+
+            position: absolute;
+
+            left: -2px;
+            top: -2px;
+
+            width: 15px;
+            height: 15px;
+
+            border-top: 3px solid var(--line-bright);
+            border-left: 3px solid var(--line-bright);
+
+            opacity: 0.72;
+        }
+
+
+        /* правый нижний угол кнопки */
+        button::after {
+            content: "";
+
+            position: absolute;
+
+            right: -2px;
+            bottom: -2px;
+
+            width: 15px;
+            height: 15px;
+
+            border-right: 3px solid var(--line-bright);
+            border-bottom: 3px solid var(--line-bright);
+
+            opacity: 0.72;
+        }
+
+
+        button:hover {
+            border-color: rgba(255, 198, 125, 0.68);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(120, 69, 25, 0.76),
+                    rgba(57, 31, 11, 0.86));
+
+            color: #ffd49b;
+
+            box-shadow:
+                inset 0 0 14px rgba(255, 200, 120, 0.09),
+                0 0 18px rgba(255, 160, 70, 0.12);
+
+            transform: translateY(-1px);
+        }
+
+
+        button:active {
+            transform: translateY(0);
+
+            background:
+                linear-gradient(180deg,
+                    rgba(142, 81, 28, 0.86),
+                    rgba(71, 38, 13, 0.92));
+        }
+
+
+        /* =========================================================
+   FOOTER
+   ========================================================= */
+
+        .footer {
+            position: relative;
+
+            z-index: 20;
+
+            padding: 14px 24px;
+
+            border-top: 1px solid var(--line-dim);
+
+            color: var(--text-faint);
+
+            font-size: 10px;
+
+            letter-spacing: 0.14em;
+
+            background:
+                rgba(6, 4, 2, 0.64);
+        }
+
+
+        /* =========================================================
+   МОБИЛЬНАЯ ВЕРСИЯ
+   ========================================================= */
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 0;
+
+                align-items: stretch;
+            }
+
+
+            .terminal {
+                min-height: 100vh;
+
+                border-left: none;
+                border-right: none;
+            }
+
+
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+
+            .console-panel {
+                border-right: none;
+
+                border-bottom: 1px solid var(--line-dim);
+
+                padding: 24px 18px;
+            }
+
+
+            .archive-panel {
+                padding: 24px 18px;
+            }
+
+
+            .header {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 7px;
+
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+
+            .console-log {
+                height: 230px;
+
+                font-size: 13px;
+            }
+
+
+            .player-controls {
+                flex-direction: column;
+            }
+
+
+            button {
+                width: 100%;
+
+                min-width: 0;
+            }
+
+
+            .track-code {
+                font-size: 17px;
+            }
+
+        }
+
+
+        /* =========================================================
+   ОЧЕНЬ УЗКИЕ ЭКРАНЫ
+   ========================================================= */
+
+        @media (max-width: 450px) {
+
+            .console-panel,
+            .archive-panel {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+
+            .header {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+
+            .header-title {
+                font-size: 12px;
+
+                line-height: 1.55;
+            }
+
+
+            .status {
+                font-size: 10px;
+            }
+
+
+            .console-log {
+                height: 220px;
+
+                padding: 13px 11px;
+
+                font-size: 12px;
+            }
+
+
+            #commandInput {
+                font-size: 13px;
+            }
+
+
+            .input-row {
+                padding: 12px;
+            }
+
+
+            .player {
+                padding: 17px 14px;
+            }
+
+
+            .footer {
+                padding-left: 14px;
+                padding-right: 14px;
+
+                line-height: 1.5;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="terminal">
+
+        <header class="header">
+            <div class="header-title">
+                СЕТЕВОЙ_ИНТЕРФЕЙС // АКУСТИЧЕСКОЕ_РЕЛЕ
+            </div>
+
+            <div class="status">
+                ● НОДА_ОНЛАЙН
+            </div>
+        </header>
+
+
+        <div class="main">
+
+            <section class="console-panel">
+
+                <div class="section-label">
+                    Локальный аудиоархив
+                </div>
+
+                <div id="consoleLog" class="console-log"></div>
+
+
+                <div id="player" class="player">
+
+                    <div id="signalTitle" class="signal-title">
+                        СИГНАЛ
+                    </div>
+
+                    <div id="signalStatus" class="signal-status">
+                        СТАТУС: КАНАЛ_НЕАКТИВЕН
+                    </div>
+
+                    <div class="visualizer-block">
+                        <div class="visualizer-header">
+                            <span>АКУСТИЧЕСКИЙ_АНАЛИЗАТОР</span>
+                            <span id="visualizerMode">СКАН: ОЖИДАНИЕ</span>
+                        </div>
+
+                        <div class="visualizer-screen">
+                            <canvas id="oscilloscope"></canvas>
+                            <div id="signalLevel" class="visualizer-value">
+                                УРОВЕНЬ 000
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="progress-shell">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+
+                    <div id="playerTime" class="player-time">
+                        00:00 / 00:00
+                    </div>
+
+                    <div class="player-controls">
+
+                        <button id="pauseButton">
+                            [ || ] ПАУЗА
+                        </button>
+
+                        <button id="stopButton">
+                            [ ■ ] ПРЕРВАТЬ
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="input-row">
+
+                    <span class="prompt">&gt;</span>
+
+                    <input id="commandInput" type="text" autocomplete="off" spellcheck="false"
+                        placeholder="ВВЕДИТЕ_КЛЮЧ_СИГНАЛА" />
+
+                </div>
+
+            </section>
+
+
+            <aside class="archive-panel">
+
+                <div class="section-label">
+                    Обнаруженные записи
+                </div>
+
+
+                <div class="archive-item active">
+
+                    <div class="track-code">
+                        NODE-06
+                    </div>
+
+                    <div class="track-name">
+                        НОДА 06
+                    </div>
+
+                    <div class="track-meta">
+                        КЛАСС: АУДИОФРАГМЕНТ<br />
+                        СТАТУС: ДОСТУПЕН<br />
+                        КЛЮЧ: NODE-06
+                    </div>
+
+                </div>
+
+
+                <div class="archive-item locked">
+
+                    <div class="track-code">
+                        [ЗАБЛОКИРОВАНО]
+                    </div>
+
+                    <div class="track-name">
+                        НЕИДЕНТИФИЦИРОВАННЫЙ СИГНАЛ
+                    </div>
+
+                </div>
+
+
+                <div class="archive-item locked">
+
+                    <div class="track-code">
+                        [ЗАБЛОКИРОВАНО]
+                    </div>
+
+                    <div class="track-name">
+                        ПОВРЕЖДЁННАЯ ЗАПИСЬ
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+
+        <footer class="footer">
+            НАВЬМОР // ЛОКАЛЬНЫЙ_АРХИВ // ВНЕШНЯЯ_СИНХРОНИЗАЦИЯ_ВЫКЛ
+        </footer>
+
+    </main>
+
+
+    <audio id="audioPlayer" preload="metadata">
+        <source src="audio/NavMor - The Node 06.mp3" type="audio/mpeg" />
+    </audio>
+
+
+    <script>
+
+        const consoleLog =
+            document.getElementById("consoleLog");
+
+        const commandInput =
+            document.getElementById("commandInput");
+
+        const audioPlayer =
+            document.getElementById("audioPlayer");
+
+        const player =
+            document.getElementById("player");
+
+        const signalTitle =
+            document.getElementById("signalTitle");
+
+        const signalStatus =
+            document.getElementById("signalStatus");
+
+        const progressBar =
+            document.getElementById("progressBar");
+
+        const playerTime =
+            document.getElementById("playerTime");
+
+        const pauseButton =
+            document.getElementById("pauseButton");
+
+        const stopButton =
+            document.getElementById("stopButton");
+
+        const oscilloscope =
+            document.getElementById("oscilloscope");
+
+        const oscilloscopeContext =
+            oscilloscope.getContext("2d");
+
+        const visualizerMode =
+            document.getElementById("visualizerMode");
+
+        const signalLevel =
+            document.getElementById("signalLevel");
+
+
+        let audioContext = null;
+        let analyser = null;
+        let sourceNode = null;
+        let timeData = null;
+        let visualizerAnimationId = null;
+
+        function resizeOscilloscope() {
+
+            const rect =
+                oscilloscope.getBoundingClientRect();
+
+            const dpr =
+                window.devicePixelRatio || 1;
+
+            oscilloscope.width =
+                Math.floor(rect.width * dpr);
+
+            oscilloscope.height =
+                Math.floor(rect.height * dpr);
+
+            oscilloscopeContext.setTransform(
+                dpr, 0, 0, dpr, 0, 0
+            );
+
+        }
+
+
+        function drawScreenBase(width, height) {
+
+            oscilloscopeContext.clearRect(
+                0, 0, width, height
+            );
+
+
+            const backgroundGradient =
+                oscilloscopeContext.createLinearGradient(
+                    0, 0, 0, height
+                );
+
+            backgroundGradient.addColorStop(
+                0,
+                "rgba(16, 10, 5, 0.95)"
+            );
+
+            backgroundGradient.addColorStop(
+                1,
+                "rgba(5, 3, 2, 0.98)"
+            );
+
+            oscilloscopeContext.fillStyle =
+                backgroundGradient;
+
+            oscilloscopeContext.fillRect(
+                0, 0, width, height
+            );
+
+
+            oscilloscopeContext.strokeStyle =
+                "rgba(255, 160, 70, 0.08)";
+
+            oscilloscopeContext.lineWidth = 1;
+
+
+            for (let y = 0; y <= height; y += 23) {
+
+                oscilloscopeContext.beginPath();
+                oscilloscopeContext.moveTo(0, y);
+                oscilloscopeContext.lineTo(width, y);
+                oscilloscopeContext.stroke();
+
+            }
+
+
+            for (let x = 0; x <= width; x += 56) {
+
+                oscilloscopeContext.beginPath();
+                oscilloscopeContext.moveTo(x, 0);
+                oscilloscopeContext.lineTo(x, height);
+                oscilloscopeContext.stroke();
+
+            }
+
+
+            oscilloscopeContext.strokeStyle =
+                "rgba(255, 180, 90, 0.20)";
+
+            oscilloscopeContext.lineWidth = 1.2;
+
+            const centerY = height / 2;
+
+            oscilloscopeContext.beginPath();
+            oscilloscopeContext.moveTo(0, centerY);
+            oscilloscopeContext.lineTo(width, centerY);
+            oscilloscopeContext.stroke();
+
+        }
+
+
+        function drawIdleScreen() {
+
+            const width = oscilloscope.clientWidth;
+            const height = oscilloscope.clientHeight;
+
+            if (!width || !height) {
+                return;
+            }
+
+            drawScreenBase(width, height);
+
+            const centerY = height / 2;
+
+            oscilloscopeContext.strokeStyle =
+                "rgba(240, 181, 107, 0.35)";
+
+            oscilloscopeContext.lineWidth = 2;
+
+            oscilloscopeContext.beginPath();
+            oscilloscopeContext.moveTo(0, centerY);
+            oscilloscopeContext.lineTo(width, centerY);
+            oscilloscopeContext.stroke();
+
+            visualizerMode.textContent =
+                "СКАН: ОЖИДАНИЕ";
+
+            signalLevel.textContent =
+                "УРОВЕНЬ 000";
+
+        }
+
+
+        function setupAudioAnalyzer() {
+
+            if (audioContext) {
+                return;
+            }
+
+            const AudioContextClass =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            audioContext =
+                new AudioContextClass();
+
+            analyser =
+                audioContext.createAnalyser();
+
+            analyser.fftSize = 2048;
+            analyser.smoothingTimeConstant = 0.85;
+
+            sourceNode =
+                audioContext.createMediaElementSource(
+                    audioPlayer
+                );
+
+            sourceNode.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            timeData =
+                new Uint8Array(analyser.fftSize);
+
+            resizeOscilloscope();
+
+        }
+
+
+        async function activateAudioSystem() {
+
+            setupAudioAnalyzer();
+
+            if (
+                audioContext &&
+                audioContext.state === "suspended"
+            ) {
+                await audioContext.resume();
+            }
+
+            startVisualizer();
+
+        }
+
+
+        function startVisualizer() {
+
+            if (visualizerAnimationId) {
+                return;
+            }
+
+            drawVisualizer();
+
+        }
+
+
+        function drawVisualizer() {
+
+            visualizerAnimationId =
+                requestAnimationFrame(drawVisualizer);
+
+            const width = oscilloscope.clientWidth;
+            const height = oscilloscope.clientHeight;
+
+            if (!width || !height) {
+                return;
+            }
+
+            drawScreenBase(width, height);
+
+
+            if (!analyser || !timeData) {
+
+                const centerY = height / 2;
+
+                oscilloscopeContext.strokeStyle =
+                    "rgba(240, 181, 107, 0.35)";
+
+                oscilloscopeContext.lineWidth = 2;
+
+                oscilloscopeContext.beginPath();
+                oscilloscopeContext.moveTo(0, centerY);
+                oscilloscopeContext.lineTo(width, centerY);
+                oscilloscopeContext.stroke();
+
+                return;
+            }
+
+
+            analyser.getByteTimeDomainData(timeData);
+
+
+            if (audioPlayer.ended) {
+
+                visualizerMode.textContent =
+                    "СКАН: ЗАВЕРШЕН";
+
+            } else if (
+                audioPlayer.paused &&
+                audioPlayer.currentTime === 0
+            ) {
+
+                visualizerMode.textContent =
+                    "СКАН: ОЖИДАНИЕ";
+
+            } else if (audioPlayer.paused) {
+
+                visualizerMode.textContent =
+                    "СКАН: УДЕРЖАНИЕ";
+
+            } else {
+
+                visualizerMode.textContent =
+                    "СКАН: АКТИВЕН";
+
+            }
+
+
+            let sliceWidth =
+                width / timeData.length;
+
+            let x = 0;
+
+            let levelAccumulator = 0;
+
+
+            oscilloscopeContext.beginPath();
+
+            for (let i = 0; i < timeData.length; i++) {
+
+                const value = timeData[i];
+                const deviation =
+                    Math.abs(value - 128);
+
+                levelAccumulator += deviation;
+
+                const normalized =
+                    value / 128.0;
+
+                const y =
+                    (normalized * height) / 2;
+
+
+                if (i === 0) {
+                    oscilloscopeContext.moveTo(x, y);
+                } else {
+                    oscilloscopeContext.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+
+            oscilloscopeContext.strokeStyle =
+                "rgba(255, 130, 50, 0.38)";
+
+            oscilloscopeContext.lineWidth = 4;
+            oscilloscopeContext.stroke();
+
+
+            oscilloscopeContext.beginPath();
+
+            x = 0;
+
+            for (let i = 0; i < timeData.length; i++) {
+
+                const value = timeData[i];
+                const normalized =
+                    value / 128.0;
+
+                const y =
+                    (normalized * height) / 2;
+
+                if (i === 0) {
+                    oscilloscopeContext.moveTo(x, y);
+                } else {
+                    oscilloscopeContext.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            oscilloscopeContext.strokeStyle =
+                "rgba(240, 181, 107, 0.95)";
+
+            oscilloscopeContext.lineWidth = 1.7;
+            oscilloscopeContext.stroke();
+
+
+            const level =
+                Math.min(
+                    999,
+                    Math.round(
+                        (levelAccumulator / timeData.length) * 8
+                    )
+                );
+
+            signalLevel.textContent =
+                `УРОВЕНЬ ${level
+                    .toString()
+                    .padStart(3, "0")}`;
+
+        }
+
+
+        function addConsoleLine(text, type = "") {
+
+            const line = document.createElement("div");
+
+            line.className =
+                `console-line ${type}`;
+
+            line.textContent = text;
+
+            consoleLog.appendChild(line);
+
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+
+        }
+
+
+        function startupSequence() {
+
+            addConsoleLine("> ИНИЦИАЛИЗАЦИЯ_ТЕРМИНАЛА...");
+            addConsoleLine("> ЧТЕНИЕ_ЛОКАЛЬНОГО_ХРАНИЛИЩА...");
+            addConsoleLine("> ОБНАРУЖЕНО_ЗАПИСЕЙ: 01", "success");
+
+            addConsoleLine("");
+
+            addConsoleLine(
+                "ВОСПРОИЗВЕДЕНИЕ_ЗАБЛОКИРОВАНО"
+            );
+
+            addConsoleLine(
+                "ВВЕДИТЕ_ИДЕНТИФИКАТОР_ДОСТУПНОГО_СИГНАЛА"
+            );
+
+        }
+
+
+        function playTrack() {
+
+            addConsoleLine("> NODE-06");
+            addConsoleLine("> ПОИСК...");
+
+            setTimeout(() => {
+
+                addConsoleLine(
+                    "> СИГНАЛ_ОБНАРУЖЕН",
+                    "success"
+                );
+
+                addConsoleLine(
+                    "> УСТАНОВКА_АУДИОКАНАЛА...",
+                    "success"
+                );
+
+
+                audioPlayer
+                    .play()
+                    .then(() => {
+
+                        player.classList.add("visible");
+
+                        signalTitle.textContent =
+                            "СИГНАЛ // NODE-06 // НОДА 06";
+
+                        signalStatus.textContent =
+                            "СТАТУС: ПЕРЕДАЧА";
+
+                        pauseButton.textContent =
+                            "[ || ] ПАУЗА";
+
+                    })
+                    .catch(() => {
+
+                        addConsoleLine(
+                            "> ОШИБКА ВОСПРОИЗВЕДЕНИЯ",
+                            "error"
+                        );
+
+                        addConsoleLine(
+                            "> ПРОВЕРЬТЕ АУДИОФАЙЛ"
+                        );
+
+                    });
+
+            }, 450);
+
+        }
+
+
+        function processCommand(command) {
+
+            const normalized =
+                command
+                    .trim()
+                    .toUpperCase();
+
+
+            if (!normalized) {
+                return;
+            }
+
+
+            if (
+                normalized === "NODE-06" ||
+                normalized === "PLAY NODE-06"
+            ) {
+
+                activateAudioSystem();
+                playTrack();
+
+            } else {
+
+                addConsoleLine(`> ${command}`);
+
+                addConsoleLine(
+                    "ОШИБКА // СИГНАЛ_НЕ_ОБНАРУЖЕН",
+                    "error"
+                );
+
+                addConsoleLine(
+                    "ПРОВЕРЬТЕ_ИДЕНТИФИКАТОР"
+                );
+
+            }
+
+        }
+
+
+        commandInput.addEventListener(
+            "keydown",
+            (event) => {
+
+                if (event.key === "Enter") {
+
+                    const command =
+                        commandInput.value;
+
+                    processCommand(command);
+
+                    commandInput.value = "";
+
+                }
+
+            }
+        );
+
+
+        pauseButton.addEventListener(
+            "click",
+            () => {
+
+                if (audioPlayer.paused) {
+
+                    activateAudioSystem();
+
+                    audioPlayer.play();
+
+                    pauseButton.textContent =
+                        "[ || ] ПАУЗА";
+
+                    signalStatus.textContent =
+                        "СТАТУС: ПЕРЕДАЧА";
+
+                } else {
+
+                    audioPlayer.pause();
+
+                    pauseButton.textContent =
+                        "[ ▶ ] ПРОДОЛЖИТЬ";
+
+                    signalStatus.textContent =
+                        "СТАТУС: ПЕРЕДАЧА ПРИОСТАНОВЛЕНА";
+
+                }
+
+            }
+        );
+
+
+        stopButton.addEventListener(
+            "click",
+            () => {
+
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+
+                progressBar.style.width = "0%";
+
+                playerTime.textContent =
+                    `00:00 / ${formatTime(audioPlayer.duration)}`;
+
+                signalStatus.textContent =
+                    "СТАТУС: КАНАЛ ПРЕРВАН";
+
+                pauseButton.textContent =
+                    "[ ▶ ] ВОСПРОИЗВЕСТИ";
+
+                addConsoleLine(
+                    "> АУДИОКАНАЛ ПРЕРВАН"
+                );
+
+            }
+        );
+
+
+        function formatTime(seconds) {
+
+            if (!Number.isFinite(seconds)) {
+                return "00:00";
+            }
+
+            const minutes =
+                Math.floor(seconds / 60);
+
+            const secondsLeft =
+                Math.floor(seconds % 60)
+                    .toString()
+                    .padStart(2, "0");
+
+            return (
+                minutes
+                    .toString()
+                    .padStart(2, "0")
+                +
+                ":"
+                +
+                secondsLeft
+            );
+
+        }
+
+
+        audioPlayer.addEventListener(
+            "timeupdate",
+            () => {
+
+                if (!audioPlayer.duration) {
+                    return;
+                }
+
+                const progress =
+                    (
+                        audioPlayer.currentTime /
+                        audioPlayer.duration
+                    ) * 100;
+
+                progressBar.style.width =
+                    `${progress}%`;
+
+                playerTime.textContent =
+                    `${formatTime(audioPlayer.currentTime)} / ${formatTime(audioPlayer.duration)}`;
+
+            }
+        );
+
+
+        audioPlayer.addEventListener(
+            "ended",
+            () => {
+
+                signalStatus.textContent =
+                    "СТАТУС: ПЕРЕДАЧА ЗАВЕРШЕНА";
+
+                pauseButton.textContent =
+                    "[ ▶ ] ВОСПРОИЗВЕСТИ";
+
+                addConsoleLine(
+                    "> КОНЕЦ СИГНАЛА",
+                    "success"
+                );
+
+                progressBar.style.width = "0%";
+
+            }
+        );
+
+
+        window.addEventListener(
+            "resize",
+            () => {
+
+                resizeOscilloscope();
+
+                if (!analyser) {
+                    drawIdleScreen();
+                }
+
+            }
+        );
+
+        startupSequence();
+
+        resizeOscilloscope();
+        drawIdleScreen();
+
+        commandInput.focus();
+
+    </script>
+
+</body>
+
+</html>
