@@ -457,10 +457,21 @@
         }
 
 
-        #commandInput {
+        .command-field {
+            position: relative;
+
             flex: 1;
 
             min-width: 0;
+        }
+
+
+        #commandInput {
+            width: 100%;
+
+            min-width: 0;
+
+            padding: 0;
 
             border: none;
             outline: none;
@@ -477,7 +488,52 @@
 
             text-transform: uppercase;
 
-            caret-color: #ffb260;
+            caret-color: transparent;
+        }
+
+
+        /* собственный терминальный курсор */
+        .terminal-caret {
+            position: absolute;
+
+            left: 0;
+            top: 50%;
+
+            width: 9px;
+            height: 2px;
+
+            transform: translateY(8px);
+
+            background: var(--text-bright);
+
+            box-shadow:
+                0 0 5px rgba(240, 181, 107, 0.55),
+                0 0 9px rgba(255, 160, 70, 0.20);
+
+            pointer-events: none;
+
+            animation:
+                terminalCaretBlink 0.8s steps(1) infinite;
+        }
+
+
+        /* когда поле не активно — курсор не показываем */
+        .command-field:not(:focus-within) .terminal-caret {
+            visibility: hidden;
+        }
+
+
+        @keyframes terminalCaretBlink {
+
+            0%,
+            49% {
+                opacity: 1;
+            }
+
+            50%,
+            100% {
+                opacity: 0;
+            }
         }
 
 
@@ -1241,8 +1297,14 @@
 
                     <span class="prompt">&gt;</span>
 
-                    <input id="commandInput" type="text" autocomplete="off" spellcheck="false"
-                        placeholder="ВВЕДИТЕ_КЛЮЧ_СИГНАЛА" />
+                    <div class="command-field">
+
+                        <input id="commandInput" type="text" autocomplete="off" spellcheck="false"
+                            placeholder="ВВЕДИТЕ_КЛЮЧ_СИГНАЛА" />
+
+                        <span id="terminalCaret" class="terminal-caret" aria-hidden="true"></span>
+
+                    </div>
 
                 </div>
 
@@ -1325,6 +1387,9 @@
         const commandInput =
             document.getElementById("commandInput");
 
+        const terminalCaret =
+            document.getElementById("terminalCaret");
+
         const audioPlayer =
             document.getElementById("audioPlayer");
 
@@ -1367,6 +1432,73 @@
         let sourceNode = null;
         let timeData = null;
         let visualizerAnimationId = null;
+
+        function updateTerminalCaret() {
+
+            const caretPosition =
+                commandInput.selectionStart ??
+                commandInput.value.length;
+
+            const textBeforeCaret =
+                commandInput.value.slice(
+                    0,
+                    caretPosition
+                );
+
+            const inputStyle =
+                getComputedStyle(commandInput);
+
+            /*
+            Создаём невидимый измеритель текста.
+            Он нужен только для вычисления того,
+            где визуально заканчиваются введённые символы.
+            */
+            const canvas =
+                updateTerminalCaret.canvas ||
+                (
+                    updateTerminalCaret.canvas =
+                    document.createElement("canvas")
+                );
+
+            const context =
+                canvas.getContext("2d");
+
+            context.font =
+                `${inputStyle.fontWeight} ${inputStyle.fontSize} ${inputStyle.fontFamily}`;
+
+            let textWidth =
+                context.measureText(
+                    textBeforeCaret
+                ).width;
+
+
+            /*
+            measureText не учитывает CSS letter-spacing,
+            поэтому добавляем его вручную.
+            */
+            const letterSpacing =
+                parseFloat(inputStyle.letterSpacing) || 0;
+
+            if (textBeforeCaret.length > 1) {
+
+                textWidth +=
+                    letterSpacing *
+                    (textBeforeCaret.length - 1);
+
+            }
+
+
+            /*
+            Учитываем горизонтальную прокрутку input,
+            если когда-нибудь будет введена длинная команда.
+            */
+            textWidth -= commandInput.scrollLeft;
+
+
+            terminalCaret.style.left =
+                `${Math.max(0, textWidth)}px`;
+
+        }
 
         function resizeOscilloscope() {
 
@@ -1860,9 +1992,37 @@
 
                     commandInput.value = "";
 
+                    requestAnimationFrame(
+                        updateTerminalCaret
+                    );
+
                 }
 
             }
+        );
+
+
+        commandInput.addEventListener(
+            "input",
+            updateTerminalCaret
+        );
+
+
+        commandInput.addEventListener(
+            "keyup",
+            updateTerminalCaret
+        );
+
+
+        commandInput.addEventListener(
+            "click",
+            updateTerminalCaret
+        );
+
+
+        commandInput.addEventListener(
+            "focus",
+            updateTerminalCaret
         );
 
 
@@ -2050,6 +2210,8 @@
         drawIdleScreen();
 
         commandInput.focus();
+
+        updateTerminalCaret();
 
     </script>
 
