@@ -1305,7 +1305,7 @@
 
 
     <audio id="audioPlayer" preload="metadata">
-        <source src="audio/NavMor - The Node 06.mp3" type="audio/mpeg" />
+        <source src="audio/NavMor - The Node 06.MP3" type="audio/mpeg" />
     </audio>
 
 
@@ -1514,7 +1514,7 @@
             timeData =
                 new Uint8Array(analyser.fftSize);
 
-            resizeOscilloscope();
+
 
         }
 
@@ -1763,6 +1763,12 @@
                         pauseButton.textContent =
                             "[ || ] ПАУЗА";
 
+                        requestAnimationFrame(() => {
+                            resizeOscilloscope();
+                            drawIdleScreen();
+                            startVisualizer();
+                        });
+
                     })
                     .catch(() => {
 
@@ -1800,8 +1806,20 @@
                 normalized === "PLAY NODE-06"
             ) {
 
-                activateAudioSystem();
-                playTrack();
+                activateAudioSystem()
+                    .then(() => {
+                        playTrack();
+                    })
+                    .catch((error) => {
+
+                        console.error(error);
+
+                        addConsoleLine(
+                            "> ОШИБКА_АУДИОСИСТЕМЫ",
+                            "error"
+                        );
+
+                    });
 
             } else {
 
