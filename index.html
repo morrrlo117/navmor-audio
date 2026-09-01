@@ -869,11 +869,11 @@
    ========================================================= */
 
         .player-controls {
-            display: flex;
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
 
             gap: 10px;
-
-            flex-wrap: wrap;
 
             margin-top: 16px;
         }
@@ -882,9 +882,15 @@
         button {
             position: relative;
 
-            min-width: 190px;
+            width: 100%;
+            min-width: 0;
+            height: 46px;
 
-            padding: 13px 18px;
+            padding: 0 16px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
 
             border: 1px solid var(--line-main);
 
@@ -900,6 +906,8 @@
             font-family: inherit;
 
             font-size: 14px;
+            line-height: 1;
+            white-space: nowrap;
 
             font-weight: bold;
 
@@ -1071,10 +1079,6 @@
             }
 
 
-            .player-controls {
-                flex-direction: column;
-            }
-
 
             button {
                 width: 100%;
@@ -1100,6 +1104,10 @@
             .archive-panel {
                 padding-left: 14px;
                 padding-right: 14px;
+            }
+
+            .player-controls {
+                grid-template-columns: 1fr;
             }
 
 
@@ -1860,19 +1868,50 @@
 
         pauseButton.addEventListener(
             "click",
-            () => {
+            async () => {
 
                 if (audioPlayer.paused) {
 
-                    activateAudioSystem();
+                    const isRestart =
+                        audioPlayer.currentTime === 0;
 
-                    audioPlayer.play();
+                    try {
 
-                    pauseButton.textContent =
-                        "[ || ] ПАУЗА";
+                        await activateAudioSystem();
+                        await audioPlayer.play();
 
-                    signalStatus.textContent =
-                        "СТАТУС: ПЕРЕДАЧА";
+                        pauseButton.textContent =
+                            "[ || ] ПАУЗА";
+
+                        signalStatus.textContent =
+                            "СТАТУС: ПЕРЕДАЧА";
+
+                        if (isRestart) {
+
+                            addConsoleLine(
+                                "> АУДИОКАНАЛ_ЗАПУЩЕН",
+                                "success"
+                            );
+
+                        } else {
+
+                            addConsoleLine(
+                                "> ПЕРЕДАЧА_ВОЗОБНОВЛЕНА",
+                                "success"
+                            );
+
+                        }
+
+                    } catch (error) {
+
+                        console.error(error);
+
+                        addConsoleLine(
+                            "> ОШИБКА_ВОСПРОИЗВЕДЕНИЯ",
+                            "error"
+                        );
+
+                    }
 
                 } else {
 
@@ -1883,6 +1922,10 @@
 
                     signalStatus.textContent =
                         "СТАТУС: ПЕРЕДАЧА ПРИОСТАНОВЛЕНА";
+
+                    addConsoleLine(
+                        "> ПЕРЕДАЧА_ПРИОСТАНОВЛЕНА"
+                    );
 
                 }
 
