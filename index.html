@@ -95,6 +95,10 @@
    ========================================================= */
 
         .terminal {
+
+            user-select: none;
+            -webkit-user-select: none;
+
             width: min(1100px, 100%);
 
             position: relative;
@@ -467,6 +471,8 @@
 
 
         #commandInput {
+            user-select: text;
+            -webkit-user-select: text;
             width: 100%;
 
             min-width: 0;
@@ -622,6 +628,9 @@
 
 
         .track-code {
+
+            user-select: text;
+            -webkit-user-select: text;
             color: var(--text-main);
 
             font-size: 18px;
@@ -1318,23 +1327,7 @@
                 </div>
 
 
-                <div class="archive-item active">
-
-                    <div class="track-code">
-                        NODE-06
-                    </div>
-
-                    <div class="track-name">
-                        НОДА 06
-                    </div>
-
-                    <div class="track-meta">
-                        КЛАСС: АУДИОФРАГМЕНТ<br />
-                        СТАТУС: ДОСТУПЕН<br />
-                        КЛЮЧ: NODE-06
-                    </div>
-
-                </div>
+                <div id="availableTracks"></div>
 
 
                 <div class="archive-item locked">
@@ -1374,15 +1367,26 @@
     </main>
 
 
-    <audio id="audioPlayer" preload="metadata">
-        <source src="audio/NavMor - The Node 06.MP3" type="audio/mpeg" />
-    </audio>
+    <audio id="audioPlayer" preload="metadata"></audio>
 
 
     <script>
 
+        const tracks = {
+
+            "NODE-06": {
+                name: "НОДА 06",
+                file: "audio/NavMor - The Node 06.MP3",
+                class: "АУДИОФРАГМЕНТ"
+            }
+
+        };
+
         const consoleLog =
             document.getElementById("consoleLog");
+
+        const availableTracks =
+            document.getElementById("availableTracks");
 
         const commandInput =
             document.getElementById("commandInput");
@@ -1432,6 +1436,65 @@
         let sourceNode = null;
         let timeData = null;
         let visualizerAnimationId = null;
+        let currentTrackKey = null;
+        let currentTrack = null;
+
+        function renderTrackArchive() {
+
+            availableTracks.innerHTML = "";
+
+            Object.entries(tracks).forEach(
+                ([trackKey, track]) => {
+
+                    const item =
+                        document.createElement("div");
+
+                    item.className =
+                        "archive-item active";
+
+
+                    const code =
+                        document.createElement("div");
+
+                    code.className =
+                        "track-code";
+
+                    code.textContent =
+                        trackKey;
+
+
+                    const name =
+                        document.createElement("div");
+
+                    name.className =
+                        "track-name";
+
+                    name.textContent =
+                        track.name;
+
+
+                    const meta =
+                        document.createElement("div");
+
+                    meta.className =
+                        "track-meta";
+
+                    meta.innerHTML =
+                        `КЛАСС: ${track.class}<br />` +
+                        `СТАТУС: ДОСТУПЕН<br />` +
+                        `КЛЮЧ: ${trackKey}`;
+
+
+                    item.appendChild(code);
+                    item.appendChild(name);
+                    item.appendChild(meta);
+
+                    availableTracks.appendChild(item);
+
+                }
+            );
+
+        }
 
         function updateTerminalCaret() {
 
@@ -1855,7 +1918,12 @@
 
             addConsoleLine("> ИНИЦИАЛИЗАЦИЯ_ТЕРМИНАЛА...");
             addConsoleLine("> ЧТЕНИЕ_ЛОКАЛЬНОГО_ХРАНИЛИЩА...");
-            addConsoleLine("> ОБНАРУЖЕНО_ЗАПИСЕЙ: 01", "success");
+            addConsoleLine(
+                `> ОБНАРУЖЕНО_ЗАПИСЕЙ: ${Object.keys(tracks).length
+                    .toString()
+                    .padStart(2, "0")}`,
+                "success"
+            );
 
             addConsoleLine("");
 
@@ -1870,10 +1938,31 @@
         }
 
 
-        function playTrack() {
+        function playTrack(trackKey) {
 
-            addConsoleLine("> NODE-06");
-            addConsoleLine("> ПОИСК...");
+            const track =
+                tracks[trackKey];
+
+            if (!track) {
+                return;
+            }
+
+
+            currentTrackKey =
+                trackKey;
+
+            currentTrack =
+                track;
+
+
+            addConsoleLine(
+                `> ${trackKey}`
+            );
+
+            addConsoleLine(
+                "> ПОИСК..."
+            );
+
 
             setTimeout(() => {
 
@@ -1888,14 +1977,41 @@
                 );
 
 
+                /*
+                Если выбран другой файл,
+                переключаем источник плеера.
+                */
+                const requestedFile =
+                    new URL(
+                        track.file,
+                        window.location.href
+                    ).href;
+
+                if (
+                    audioPlayer.src !==
+                    requestedFile
+                ) {
+
+                    audioPlayer.pause();
+
+                    audioPlayer.src =
+                        track.file;
+
+                    audioPlayer.load();
+
+                }
+
+
                 audioPlayer
                     .play()
                     .then(() => {
 
-                        player.classList.add("visible");
+                        player.classList.add(
+                            "visible"
+                        );
 
                         signalTitle.textContent =
-                            "СИГНАЛ // NODE-06 // НОДА 06";
+                            `СИГНАЛ // ${trackKey} // ${track.name}`;
 
                         signalStatus.textContent =
                             "СТАТУС: ПЕРЕДАЧА";
@@ -1903,14 +2019,21 @@
                         pauseButton.textContent =
                             "[ || ] ПАУЗА";
 
-                        requestAnimationFrame(() => {
-                            resizeOscilloscope();
-                            drawIdleScreen();
-                            startVisualizer();
-                        });
+
+                        requestAnimationFrame(
+                            () => {
+
+                                resizeOscilloscope();
+                                drawIdleScreen();
+                                startVisualizer();
+
+                            }
+                        );
 
                     })
-                    .catch(() => {
+                    .catch((error) => {
+
+                        console.error(error);
 
                         addConsoleLine(
                             "> ОШИБКА ВОСПРОИЗВЕДЕНИЯ",
@@ -1941,14 +2064,29 @@
             }
 
 
-            if (
-                normalized === "NODE-06" ||
-                normalized === "PLAY NODE-06"
-            ) {
+            /*
+            Поддерживаем две формы:
+            
+            NODE-06
+            PLAY NODE-06
+            */
+            const trackKey =
+                normalized.startsWith("PLAY ")
+                    ? normalized.slice(5).trim()
+                    : normalized;
+
+
+            const track =
+                tracks[trackKey];
+
+
+            if (track) {
 
                 activateAudioSystem()
                     .then(() => {
-                        playTrack();
+
+                        playTrack(trackKey);
+
                     })
                     .catch((error) => {
 
@@ -1963,7 +2101,9 @@
 
             } else {
 
-                addConsoleLine(`> ${command}`);
+                addConsoleLine(
+                    `> ${command}`
+                );
 
                 addConsoleLine(
                     "ОШИБКА // СИГНАЛ_НЕ_ОБНАРУЖЕН",
@@ -2203,6 +2343,8 @@
 
             }
         );
+
+        renderTrackArchive();
 
         startupSequence();
 
